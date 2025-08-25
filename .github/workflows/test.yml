@@ -67,95 +67,95 @@ jobs:
           body_path: release.txt
 
 
-  job_build_passwall2:
-    name: Build passwall2 [Luci 24.10]
-    needs: job_check
-    if: needs.job_check.outputs.has_update == 'true'
-    runs-on: ubuntu-24.04
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - sdk_url: https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
-    steps:
-      - name: Install packages
-        run: |
-          if [ "$(docker images -q)" ]; then
-            docker rmi $(docker images -q)
-          fi
-          sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android
-          echo "Install packages"
-          sudo -E apt-get -qq update
-          sudo -E apt-get -qq install flex bison g++ gawk git libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget zstd
-          sudo -E apt-get -qq autoremove --purge
-          sudo -E apt-get -qq clean
+  # job_build_passwall2:
+  #   name: Build passwall2 [Luci 24.10]
+  #   needs: job_check
+  #   if: needs.job_check.outputs.has_update == 'true'
+  #   runs-on: ubuntu-24.04
+  #   strategy:
+  #     fail-fast: false
+  #     matrix:
+  #       include:
+  #         - sdk_url: https://downloads.openwrt.org/snapshots/targets/x86/64/openwrt-sdk-x86-64_gcc-13.3.0_musl.Linux-x86_64.tar.zst
+  #   steps:
+  #     - name: Install packages
+  #       run: |
+  #         if [ "$(docker images -q)" ]; then
+  #           docker rmi $(docker images -q)
+  #         fi
+  #         sudo -E rm -rf /usr/share/dotnet /etc/mysql /etc/php /etc/apt/sources.list.d /usr/local/lib/android
+  #         echo "Install packages"
+  #         sudo -E apt-get -qq update
+  #         sudo -E apt-get -qq install flex bison g++ gawk git libncurses-dev libssl-dev python3-setuptools rsync swig unzip zlib1g-dev file wget zstd
+  #         sudo -E apt-get -qq autoremove --purge
+  #         sudo -E apt-get -qq clean
 
-      - name: Cache openwrt SDK
-        id: cache-sdk
-        uses: actions/cache@v4
-        with:
-          path: sdk
-          key: openwrt-luci-${{ env.sdk_ver }}-x86_64
+  #     - name: Cache openwrt SDK
+  #       id: cache-sdk
+  #       uses: actions/cache@v4
+  #       with:
+  #         path: sdk
+  #         key: openwrt-luci-${{ env.sdk_ver }}-x86_64
 
-      - name: Initialization environment
-        if: steps.cache-sdk.outputs.cache-hit != 'true'
-        run: |
-          wget ${{ matrix.sdk_url }}
-          file_name=$(echo ${{ matrix.sdk_url }} | awk -F/ '{print $NF}')
-          mkdir sdk && tar --zstd -xf $file_name -C ./sdk --strip-components=1
-          cd sdk
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf
-          echo "src-git passwall_packages https://github.com/${{ env.packages }}.git;main" >> feeds.conf
-          echo "src-git passwall2 https://github.com/${{ env.passwall2 }}.git;main" >> feeds.conf
-          ./scripts/feeds update -a
-          echo "CONFIG_PACKAGE_luci-app-passwall2=m" > .config
-          ./scripts/feeds install -d n luci-app-passwall2
-          make package/luci-app-passwall2/download -j1
+  #     - name: Initialization environment
+  #       if: steps.cache-sdk.outputs.cache-hit != 'true'
+  #       run: |
+  #         wget ${{ matrix.sdk_url }}
+  #         file_name=$(echo ${{ matrix.sdk_url }} | awk -F/ '{print $NF}')
+  #         mkdir sdk && tar --zstd -xf $file_name -C ./sdk --strip-components=1
+  #         cd sdk
+  #         echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf
+  #         echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
+  #         echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
+  #         echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf
+  #         echo "src-git passwall_packages https://github.com/${{ env.packages }}.git;main" >> feeds.conf
+  #         echo "src-git passwall2 https://github.com/${{ env.passwall2 }}.git;main" >> feeds.conf
+  #         ./scripts/feeds update -a
+  #         echo "CONFIG_PACKAGE_luci-app-passwall2=m" > .config
+  #         ./scripts/feeds install -d n luci-app-passwall2
+  #         make package/luci-app-passwall2/download -j1
 
-      - name: Update passwall2 feeds
-        if: steps.cache-sdk.outputs.cache-hit == 'true'
-        run: |
-          cd sdk
-          sed -i '6s/main/main/' feeds.conf
-          ./scripts/feeds update passwall_packages
-          ./scripts/feeds update passwall2
-          ./scripts/feeds install luci-app-passwall2
+  #     - name: Update passwall2 feeds
+  #       if: steps.cache-sdk.outputs.cache-hit == 'true'
+  #       run: |
+  #         cd sdk
+  #         sed -i '6s/main/main/' feeds.conf
+  #         ./scripts/feeds update passwall_packages
+  #         ./scripts/feeds update passwall2
+  #         ./scripts/feeds install luci-app-passwall2
 
-      - name: Compile passwall2
-        id: compile
-        run: |
-          cd sdk
-          echo "CONFIG_ALL_NONSHARED=n" > .config
-          echo "CONFIG_USE_APK=y" >> .config
-          echo "CONFIG_ALL_KMODS=n" >> .config
-          echo "CONFIG_ALL=n" >> .config
-          echo "CONFIG_AUTOREMOVE=n" >> .config
-          echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
-          echo "CONFIG_PACKAGE_luci-app-passwall2=m" >> .config
-          make defconfig
-          echo "make package/luci-app-passwall2/{clean,compile} -j1"
-          make package/luci-app-passwall2/{clean,compile} -j1
-          mv bin/packages/x86_64/passwall2/ ../
-          make clean
-          rm .config .config.old
-          rm -rf feeds/passwall2 feeds/passwall2.*
-          cd ../passwall2
-          for i in $(ls); do mv $i luci-${{ env.sdk_ver }}_$i; done
-          cd ..
-          echo "status=success" >> $GITHUB_OUTPUT
-          echo "FIRMWARE=$PWD" >> $GITHUB_ENV
+  #     - name: Compile passwall2
+  #       id: compile
+  #       run: |
+  #         cd sdk
+  #         echo "CONFIG_ALL_NONSHARED=n" > .config
+  #         echo "CONFIG_USE_APK=y" >> .config
+  #         echo "CONFIG_ALL_KMODS=n" >> .config
+  #         echo "CONFIG_ALL=n" >> .config
+  #         echo "CONFIG_AUTOREMOVE=n" >> .config
+  #         echo "CONFIG_LUCI_LANG_zh_Hans=y" >> .config
+  #         echo "CONFIG_PACKAGE_luci-app-passwall2=m" >> .config
+  #         make defconfig
+  #         echo "make package/luci-app-passwall2/{clean,compile} -j1"
+  #         make package/luci-app-passwall2/{clean,compile} -j1
+  #         mv bin/packages/x86_64/passwall2/ ../
+  #         make clean
+  #         rm .config .config.old
+  #         rm -rf feeds/passwall2 feeds/passwall2.*
+  #         cd ../passwall2
+  #         for i in $(ls); do mv $i luci-${{ env.sdk_ver }}_$i; done
+  #         cd ..
+  #         echo "status=success" >> $GITHUB_OUTPUT
+  #         echo "FIRMWARE=$PWD" >> $GITHUB_ENV
 
-      - name: Upload passwall2 apks to release
-        uses: softprops/action-gh-release@v2
-        if: steps.compile.outputs.status == 'success'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{needs.job_check.outputs.passwall2_version}}
-          files: ${{ env.FIRMWARE }}/passwall2/*.apk
+  #     - name: Upload passwall2 apks to release
+  #       uses: softprops/action-gh-release@v2
+  #       if: steps.compile.outputs.status == 'success'
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       with:
+  #         tag_name: ${{needs.job_check.outputs.passwall2_version}}
+  #         files: ${{ env.FIRMWARE }}/passwall2/*.apk
 
 
   job_auto_compile:
