@@ -262,8 +262,10 @@ jobs:
 
           git clone --depth=1 --branch master https://github.com/openwrt/packages.git tmp_packages
           rm -rf feeds/packages/lang/golang
+          rm -rf feeds/packages/libs/libsodium
           # rm -rf feeds/packages/lang/rust
-          mv -f tmp_packages/lang/golang feeds/packages/lang
+          mv tmp_packages/lang/golang feeds/packages/lang
+          mv tmp_packages/libs/libsodium feeds/packages/libs
           # mv -f tmp_packages/lang/rust feeds/packages/lang
           rm -rf tmp_packages
           # rm -rf feeds/packages/lang/golang
