@@ -335,6 +335,10 @@ jobs:
           cd sdk
           mkdir upload
 
+          ls bin/packages
+          ls bin/packages/x86_64
+          ls bin/packages/x86_64/passwall_packages
+          ls bin/packages/*/passwall_packages
           zip -jr upload/passwall_packages_apk_${{ matrix.platform }}.zip bin/packages/*/passwall_packages/*.apk
 
           echo "FIRMWARE=$PWD" >> $GITHUB_ENV
