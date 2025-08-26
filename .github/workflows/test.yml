@@ -315,7 +315,7 @@ jobs:
         id: compile
         run: |
           cd sdk
-          # make package/feeds/passwall_packages/xray-core/compile -j1 V=s
+          make package/feeds/passwall_packages/xray-core/compile -j1 V=s
           # make package/feeds/passwall_packages/chinadns-ng/compile -j1 V=s
           make package/feeds/passwall_packages/geoview/compile -j1 V=s
           # make package/feeds/passwall_packages/tcping/compile -j1 V=s
