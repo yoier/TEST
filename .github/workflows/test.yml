@@ -17,7 +17,7 @@ env:
   TZ: Asia/Shanghai
   passwall2: xiaorouji/openwrt-passwall2
   packages: xiaorouji/openwrt-passwall-packages
-  sdk_ver: '24.10'
+  sdk_ver: 'master'
 
 
 jobs:
@@ -248,10 +248,10 @@ jobs:
       - name: ${{ matrix.platform }} feeds configuration packages
         run: |
           cd sdk
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf.default
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf.default
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf.default
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf.default
+          echo "src-git base https://github.com/openwrt/openwrt.git;${{ env.sdk_ver }}" > feeds.conf.default
+          echo "src-git packages https://github.com/openwrt/packages.git;${{ env.sdk_ver }}" >> feeds.conf.default
+          echo "src-git luci https://github.com/openwrt/luci.git;${{ env.sdk_ver }}" >> feeds.conf.default
+          echo "src-git routing https://git.openwrt.org/feed/routing.git;${{ env.sdk_ver }}"  >> feeds.conf.default
           echo "src-git passwall_packages https://github.com/${{ env.packages }}.git;main" >> feeds.conf.default
           echo "src-git passwall2 https://github.com/${{ env.passwall2 }}.git;main" >> feeds.conf.default
 
