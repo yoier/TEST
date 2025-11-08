@@ -17,7 +17,7 @@ env:
   TZ: Asia/Shanghai
   passwall2: xiaorouji/openwrt-passwall2
   packages: xiaorouji/openwrt-passwall-packages
-  sdk_ver: '24.10'
+  sdk_ver: 'master'
 
 
 jobs:
@@ -248,12 +248,12 @@ jobs:
       - name: ${{ matrix.platform }} feeds configuration packages
         run: |
           cd sdk
-          echo "src-git base https://github.com/openwrt/openwrt.git;openwrt-${{ env.sdk_ver }}" > feeds.conf
-          echo "src-git packages https://github.com/openwrt/packages.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git luci https://github.com/openwrt/luci.git;openwrt-${{ env.sdk_ver }}" >> feeds.conf
-          echo "src-git routing https://git.openwrt.org/feed/routing.git;openwrt-${{ env.sdk_ver }}"  >> feeds.conf
-          echo "src-git passwall_packages https://github.com/${{ env.packages }}.git;main" >> feeds.conf
-          echo "src-git passwall2 https://github.com/${{ env.passwall2 }}.git;main" >> feeds.conf
+          echo "src-git base https://github.com/openwrt/openwrt.git;${{ env.sdk_ver }}" > feeds.conf.default
+          echo "src-git packages https://github.com/openwrt/packages.git;${{ env.sdk_ver }}" >> feeds.conf.default
+          echo "src-git luci https://github.com/openwrt/luci.git;${{ env.sdk_ver }}" >> feeds.conf.default
+          echo "src-git routing https://git.openwrt.org/feed/routing.git;${{ env.sdk_ver }}"  >> feeds.conf.default
+          echo "src-git passwall_packages https://github.com/${{ env.packages }}.git;main" >> feeds.conf.default
+          echo "src-git passwall2 https://github.com/${{ env.passwall2 }}.git;main" >> feeds.conf.default
 
           ./scripts/feeds update -a
           
@@ -272,8 +272,8 @@ jobs:
           # rm -rf feeds/packages/lang/golang
           # git clone https://github.com/sbwml/packages_lang_golang -b 24.x feeds/packages/lang/golang
           
-          ./scripts/feeds install -a
           ./scripts/feeds install -a -f -p passwall_packages
+          ./scripts/feeds install -a
           echo "fixed rust host build error"
           sed -i 's/--set=llvm\.download-ci-llvm=false/--set=llvm.download-ci-llvm=true/' feeds/packages/lang/rust/Makefile
           grep -q -- '--ci false \\' feeds/packages/lang/rust/Makefile || sed -i '/x\.py \\/a \        --ci false \\' feeds/packages/lang/rust/Makefile
@@ -317,15 +317,15 @@ jobs:
           cd sdk
           # make package/feeds/passwall_packages/xray-core/compile -j1 V=s
           # make package/feeds/passwall_packages/chinadns-ng/compile -j1 V=s
-          make package/feeds/passwall_packages/geoview/compile -j1 V=s
+          # make package/feeds/passwall_packages/geoview/compile -j1 V=s
           # make package/feeds/passwall_packages/tcping/compile -j1 V=s
           # make package/feeds/passwall_packages/v2ray-geodata/compile -j1 V=s
           # make package/feeds/passwall_packages/hysteria/compile -j1 V=s
           # make package/feeds/passwall_packages/naiveproxy/compile -j1 V=s
-          make package/feeds/passwall_packages/shadowsocks-rust/compile -j1 V=s
+          # make package/feeds/passwall_packages/shadowsocks-rust/compile -j1 V=s
           # make package/feeds/passwall_packages/shadowsocksr-libev/compile -j1 V=s
           # make package/feeds/passwall_packages/simple-obfs/compile -j1 V=s
-          # make package/feeds/passwall_packages/sing-box/compile -j1 V=s
+          make package/feeds/passwall_packages/sing-box/compile -j1 V=s
           # make package/feeds/passwall_packages/tuic-client/compile -j1 V=s
           # make package/feeds/passwall_packages/v2ray-plugin/compile -j1 V=s
 
