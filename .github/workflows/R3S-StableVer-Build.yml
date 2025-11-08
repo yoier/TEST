@@ -50,7 +50,7 @@ jobs:
             echo "无需更新"
             exit 1
         fi
-        echo "latest_tag=$n_latest_tag" >> $GITHUB_ENV
+        echo "latest_tag=$n_latest_name" >> $GITHUB_ENV
         sudo timedatectl set-timezone "$TZ"
         sudo rm -rf /workdir
         sudo mkdir -p /workdir
@@ -72,6 +72,7 @@ jobs:
         # fix some build error
         git clone --depth=1 --branch master https://github.com/openwrt/packages.git tmp_packages
         rm -rf feeds/packages/lang/golang
+        ls
         mv tmp_packages/lang/golang feeds/packages/lang
         rm -rf tmp_packages
         # end
